@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Alarmes Digitais MHK (Firebase)</title>
+    <title id="page-title">Registro de Alarmes Digitais MHK (Firebase)</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -72,10 +72,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm6 2a1 1 0 000 2h2a1 1 0 100-2H9zm-1 5a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
                 </svg>
-                Registro de Alarmes Digitais MHK
+                <span id="main-title">Registro de Alarmes Digitais MHK</span>
             </h1>
             <p class="text-gray-500 text-sm">
-                Departamento Técnico - MHK SC2
+                Departamento Técnico - MHK <span id="site-context-label">SC2</span>
             </p>
         </header>
 
@@ -162,7 +162,23 @@
     </div>
 
     <script>
-        // === 1. CONFIGURAÇÃO FIREBASE ===
+        // === 1. IDENTIFICAÇÃO DO SITE (SC1 vs BA1) ===
+        // Detecta automaticamente com base na URL do GitHub Pages ou do repositório
+        const getSiteContext = () => {
+            const url = window.location.href.toLowerCase();
+            if (url.includes('ba1')) return 'ba1';
+            if (url.includes('sc1')) return 'sc1';
+            return 'sc1'; // Padrão caso não identifique
+        };
+
+        const SITE_ID = getSiteContext();
+        
+        // Atualiza elementos visuais com base no contexto
+        document.getElementById('page-title').textContent = `Registro de Alarmes Digitais MHK ${SITE_ID.toUpperCase()}`;
+        document.getElementById('main-title').textContent = `Registro de Alarmes Digitais MHK ${SITE_ID.toUpperCase()}`;
+        document.getElementById('site-context-label').textContent = SITE_ID.toUpperCase();
+
+        // === 2. CONFIGURAÇÃO FIREBASE ===
         const firebaseConfig = {
             apiKey: "SUA_API_KEY",
             authDomain: "alarmes-das-digitais-XXXX.firebaseapp.com",
@@ -175,10 +191,12 @@
 
         const app = firebase.initializeApp(firebaseConfig);
         const db = app.database();
-        const alarmsRef = db.ref('alarms_sc2'); 
-        const linesRef = db.ref('config_lines_sc2');
+        
+        // CAMINHOS DINÂMICOS: Agora cada site salva em sua própria "pasta" no Firebase
+        const alarmsRef = db.ref(`alarms_mhk_${SITE_ID}`); 
+        const linesRef = db.ref(`config_lines_mhk_${SITE_ID}`);
 
-        // Configurações
+        // Configurações de Senha
         const EXPORT_PASSWORD = 'admin123';
         const ADD_PASSWORD = 'exp321'; 
         
@@ -187,7 +205,7 @@
         let currentFilter = ''; 
         let searchTerm = ''; 
 
-        // === 2. FUNÇÕES DE GESTÃO DE LINHAS (ABAS) ===
+        // === 3. FUNÇÕES DE GESTÃO DE LINHAS (ABAS) ===
 
         function loadLinesConfig() {
             linesRef.on('value', (snapshot) => {
@@ -293,7 +311,7 @@
             }, true, ADD_PASSWORD);
         }
 
-        // === 3. FUNÇÕES FIREBASE ALARMES ===
+        // === 4. FUNÇÕES FIREBASE ALARMES ===
 
         function loadAndListenForData() {
             alarmsRef.on('value', (snapshot) => {
@@ -345,7 +363,7 @@
             }, true, ADD_PASSWORD);
         }
 
-        // === 4. UI E MODAL ===
+        // === 5. UI E MODAL ===
 
         const modal = document.getElementById('custom-modal');
         const modalTextInputContainer = document.getElementById('modal-text-input-container');
@@ -391,7 +409,7 @@
             }
         }
 
-        // === 5. RENDERIZAÇÃO E EVENTOS ===
+        // === 6. RENDERIZAÇÃO E EVENTOS ===
 
         function startEditing(cell, firebaseId, field, initialValue) {
             if (cell.querySelector('input, textarea, select')) return;
@@ -497,7 +515,7 @@
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = `alarmes_mhk_${new Date().toISOString().slice(0,10)}.csv`;
+                    link.download = `alarmes_mhk_${SITE_ID}_${new Date().toISOString().slice(0,10)}.csv`;
                     link.click();
                 }, true, EXPORT_PASSWORD);
             };
