@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Alarmes Digitais SC2 (Firebase)</title>
+    <title>Registro de Alarmes Digitais MHK (Firebase)</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -72,7 +72,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm6 2a1 1 0 000 2h2a1 1 0 100-2H9zm-1 5a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
                 </svg>
-                Registro de Alarmes Digitais SC2
+                Registro de Alarmes Digitais MHK
             </h1>
             <p class="text-gray-500 text-sm">
                 Departamento Técnico - MHK SC2
@@ -176,7 +176,7 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = app.database();
         const alarmsRef = db.ref('alarms_sc2'); 
-        const linesRef = db.ref('config_lines_sc2'); // Nova referência para as abas
+        const linesRef = db.ref('config_lines_sc2');
 
         // Configurações
         const EXPORT_PASSWORD = 'admin123';
@@ -195,7 +195,6 @@
                 if (data && Array.isArray(data)) {
                     LINES = data;
                 } else {
-                    // Inicialização padrão caso o banco esteja vazio
                     LINES = ['Linha 1', 'Linha 2', 'Linha 4', 'Linha 5', 'Linha 6'];
                     linesRef.set(LINES);
                 }
@@ -217,7 +216,6 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = `flex items-center rounded-lg border transition duration-150 overflow-hidden ${currentFilter === linha ? 'bg-red-600 border-red-600 text-white shadow-md' : 'bg-gray-200 border-gray-300 text-gray-600 hover:bg-gray-300'}`;
                 
-                // Botão de Seleção Principal
                 const btn = document.createElement('button');
                 btn.className = "px-3 py-1 text-sm font-medium focus:outline-none";
                 btn.textContent = linha;
@@ -229,7 +227,6 @@
                     renderTable();
                 };
 
-                // Botão de Editar Nome
                 const editBtn = document.createElement('button');
                 editBtn.className = `p-1 manage-icon hover:bg-black hover:bg-opacity-10`;
                 editBtn.innerHTML = `
@@ -238,7 +235,6 @@
                     </svg>`;
                 editBtn.onclick = (e) => { e.stopPropagation(); promptRenameLine(index); };
 
-                // Botão de Deletar Aba
                 const delBtn = document.createElement('button');
                 delBtn.className = `p-1 manage-icon hover:bg-black hover:bg-opacity-10`;
                 delBtn.innerHTML = `
@@ -261,7 +257,7 @@
                     LINES.push(name);
                     linesRef.set(LINES);
                 }
-            }, true, ADD_PASSWORD, true); // O último parâmetro true indica que requer campo de texto
+            }, true, ADD_PASSWORD, true);
         }
 
         function promptRenameLine(index) {
@@ -269,12 +265,9 @@
             showModal('Renomear Linha', `Digite o novo nome para "${oldName}":`, false, () => {
                 const newName = document.getElementById('modal-text-input').value.trim();
                 if (newName && newName !== oldName) {
-                    // 1. Atualiza a lista de abas
                     LINES[index] = newName;
                     if (currentFilter === oldName) currentFilter = newName;
                     linesRef.set(LINES);
-
-                    // 2. Opcional: Atualizar registros antigos para o novo nome (Consistência)
                     updateExistingAlarmsLineName(oldName, newName);
                 }
             }, true, ADD_PASSWORD, true, oldName);
@@ -368,7 +361,6 @@
             modalTextInput.value = initialText;
             document.getElementById('modal-error-message').classList.add('hidden');
             
-            // Configurar visibilidade de inputs
             document.getElementById('modal-input-container').classList.toggle('hidden', !needsPassword);
             modalTextInputContainer.classList.toggle('hidden', !hasTextInput);
             
@@ -505,7 +497,7 @@
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = `alarmes_sc2_${new Date().toISOString().slice(0,10)}.csv`;
+                    link.download = `alarmes_mhk_${new Date().toISOString().slice(0,10)}.csv`;
                     link.click();
                 }, true, EXPORT_PASSWORD);
             };
