@@ -1,3 +1,8 @@
+// SC1
+const alarmsRef = db.ref('alarmes/sc1');
+
+// BA1
+const alarmsRef = db.ref('alarmes/ba1');
 const historicoRef = db.ref('historico_alarmes');
 const listaHistorico = document.getElementById('historico-lista');
 const formulario = document.getElementById('formulario-alarme');
