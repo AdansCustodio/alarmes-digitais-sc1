@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Registro de Alarmes Digitais MHK (Firebase)</title>
+    <title id="page-title">Registro de Alarmes Digitais MHK</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Firebase App (o núcleo do SDK do Firebase) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <!-- Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
@@ -75,7 +77,7 @@
                 <span id="main-title">Registro de Alarmes Digitais MHK</span>
             </h1>
             <p class="text-gray-500 text-sm">
-                Departamento Técnico - MHK <span id="site-context-label">SC2</span>
+                Departamento Técnico - MHK
             </p>
         </header>
 
@@ -140,6 +142,7 @@
             </table>
         </div>
         
+        <!-- Modal -->
         <div id="custom-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden items-center justify-center p-4">
             <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
                 <h3 id="modal-title" class="text-xl font-bold mb-3 text-red-700"></h3>
@@ -162,37 +165,40 @@
     </div>
 
     <script>
-        // === 1. IDENTIFICAÇÃO DO SITE (SC1 vs BA1) ===
-        // Detecta automaticamente com base na URL do GitHub Pages ou do repositório
+        // === 1. IDENTIFICAÇÃO DA UNIDADE (SC1, SC2, ..., BA1) ===
+        // Detecta automaticamente com base na URL
         const getSiteContext = () => {
             const url = window.location.href.toLowerCase();
-            if (url.includes('ba1')) return 'ba1';
-            if (url.includes('sc1')) return 'sc1';
-            return 'sc1'; // Padrão caso não identifique
+            const units = ['sc1', 'sc2', 'sc3', 'sc4', 'sc5', 'ba1'];
+            
+            // Procura se alguma das unidades está presente na URL
+            const found = units.find(unit => url.includes(unit));
+            
+            // Retorna a unidade encontrada ou 'sc1' como padrão
+            return found || 'sc1';
         };
 
         const SITE_ID = getSiteContext();
         
-        // Atualiza elementos visuais com base no contexto
-        document.getElementById('page-title').textContent = `Registro de Alarmes Digitais MHK ${SITE_ID.toUpperCase()}`;
-        document.getElementById('main-title').textContent = `Registro de Alarmes Digitais MHK ${SITE_ID.toUpperCase()}`;
-        document.getElementById('site-context-label').textContent = SITE_ID.toUpperCase();
+        // As linhas que adicionavam o sufixo ao título foram removidas
+        // para manter o título genérico. A lógica de SITE_ID continua ativa
+        // apenas para a seleção do banco de dados abaixo.
 
         // === 2. CONFIGURAÇÃO FIREBASE ===
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "alarmes-das-digitais-XXXX.firebaseapp.com",
-            projectId: "alarmes-das-digitais-XXXX",
-            storageBucket: "alarmes-das-digitais-XXXX.appspot.com",
-            messagingSenderId: "SEU_ID",
-            appId: "SEU_APP_ID",
-            databaseURL: "https://alarmes-das-digitais-default-rtdb.firebaseio.com"
+            apiKey: "AIzaSyCfjxmVrNbNuIoxcg19xCDYVxB5EjbinI0",
+            authDomain: "alarmes-sc1.firebaseapp.com",
+            projectId: "alarmes-sc1",
+            storageBucket: "alarmes-sc1.firebasestorage.app",
+            messagingSenderId: "26525251671",
+            appId: "1:26525251671:web:33c48e4427e1f41f6b0b12",
+            measurementId: "G-5Q75F8CWNF"
         };
 
         const app = firebase.initializeApp(firebaseConfig);
         const db = app.database();
         
-        // CAMINHOS DINÂMICOS: Agora cada site salva em sua própria "pasta" no Firebase
+        // CAMINHOS DINÂMICOS: Salva nas coleções específicas da unidade detectada
         const alarmsRef = db.ref(`alarms_mhk_${SITE_ID}`); 
         const linesRef = db.ref(`config_lines_mhk_${SITE_ID}`);
 
@@ -433,6 +439,10 @@
             }
 
             input.className = 'data-input';
+            
+            // Impede a propagação do clique para que a célula não tente reiniciar a edição
+            input.onclick = (e) => e.stopPropagation();
+
             cell.innerHTML = '';
             cell.appendChild(input);
             input.focus();
@@ -441,11 +451,19 @@
                 const val = input.value.trim();
                 if (val !== initialValue) updateAlarmField(firebaseId, field, val);
                 cell.textContent = val;
-                setupCellListeners();
+                // Não precisamos rechamar setupCellListeners aqui, pois o listener na célula permanece
             };
 
             input.onblur = save;
-            if (!isLongText) input.onkeydown = (e) => e.key === 'Enter' && save();
+            
+            if (!isLongText) {
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        // Blur dispara o save automaticamente
+                        input.blur(); 
+                    }
+                };
+            }
         }
 
         function setupCellListeners() {
